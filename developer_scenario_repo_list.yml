@@ -240,12 +240,44 @@ OpenEuler:
       url: "https://gitcode.com/openeuler/witty-service.git"
       branch: master
       component: OpenEuler
-    - name: stratovirt
-      url: "https://gitcode.com/openeuler/stratovirt.git"
-      branch: master
-      component: OpenEuler
     - name: bishengjdk-8
       url: "https://gitcode.com/openeuler/bishengjdk-8.git"
+      branch: master
+      component: OpenEuler
+    - name: cache_tuner
+      url: "https://gitcode.com/openeuler/cache_tuner.git"
+      branch: master
+      component: OpenEuler
+    - name: euler-copilot-shell
+      url: "https://gitcode.com/openeuler/euler-copilot-shell.git"
+      branch: master
+      component: OpenEuler
+    - name: heolleo
+      url: "https://gitcode.com/openeuler/heolleo.git"
+      branch: master
+      component: OpenEuler
+    - name: oeAware-manager
+      url: "https://gitcode.com/openeuler/oeAware-manager.git"
+      branch: master
+      component: OpenEuler
+    - name: oeDeploy
+      url: "https://gitcode.com/openeuler/oeDeploy.git"
+      branch: master
+      component: OpenEuler
+    - name: oeDevPlugin
+      url: "https://gitcode.com/openeuler/oeDevPlugin.git"
+      branch: master
+      component: OpenEuler
+    - name: openeuler-jenkins
+      url: "https://gitcode.com/ConneRa1/openeuler-jenkins.git"
+      branch: master
+      component: OpenEuler
+    - name: powerapi
+      url: "https://gitcode.com/openeuler/powerapi.git"
+      branch: master
+      component: OpenEuler
+    - name: radiaTest
+      url: "https://gitcode.com/ConneRa1/radiaTest.git"
       branch: master
       component: OpenEuler
 
