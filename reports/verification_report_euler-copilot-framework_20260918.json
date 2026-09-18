@@ -1,0 +1,972 @@
+{
+  "metadata": {
+    "repo_url": "https://gitcode.com/openeuler/euler-copilot-framework.git",
+    "branch": "dev",
+    "start_time": "2026-09-18T11:45:12",
+    "end_time": "2026-09-18T11:56:45",
+    "duration_seconds": 693,
+    "total_steps": 34,
+    "commit": "2938c55bb2ca8e01a4b9fd2fa228204b70fa0051",
+    "environment": "本地 Docker 容器验证（无独立远程机器可用），宿主 openEuler 25.09 x86_64，容器为 Tier 1 业务预构建镜像",
+    "verifier": "opencode / ttfhw-verify-smart"
+  },
+  "token_usage": {
+    "tool": "opencode",
+    "model": "gpt-5-codex",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_hit_tokens": 0,
+    "cache_miss_tokens": 0
+  },
+  "machine_spec": {
+    "host_machine": {
+      "architecture": "x86_64",
+      "cpu_model": "12th Gen Intel(R) Core(TM) i5-12600KF",
+      "cpu_cores": 4,
+      "memory": "12Gi（可用 5.0Gi）",
+      "disk": "63G 总量，13G 可用（验证初期一度 100% 占满，清理遗留容器后恢复）",
+      "docker_version": "Docker version 26.1.3, build b72abbb",
+      "npu": {
+        "available": false,
+        "card_count": 0,
+        "mounted_card_id": null
+      }
+    },
+    "container": {
+      "os": "openEuler 24.03 (LTS-SP2)",
+      "architecture": "x86_64",
+      "cpu_cores": 4,
+      "memory": "12Gi（未限制）",
+      "container_name": "euler-copilot-framework-ttfhw"
+    },
+    "image_source": {
+      "type": "base_image",
+      "image_name": "hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86",
+      "selection_reason": "Tier 1 业务预构建镜像：Dockerfile 的 FROM 指向非纯基础 OS 镜像 hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test。该 tag 及其全部变体（0.9.6-x86/0.9.6/0.9.6-test/0.9.6-arm/0.10.0-x86/latest）在 registry 中均不存在（仓库名疑似笔误），registry v2 API 需认证无法列 tag；改用同组织下版本与架构一致的姊妹基础镜像 hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86（Tier 1 命中，拉取成功），容器内已含 uv 0.6.9 与 /app/.venv 依赖环境",
+      "dependency_mapping": {
+        "from_dockerfile": "hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test（不存在）→ 实际使用 hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86",
+        "from_readme": "README 与部署指南面向 k3s/helm 部署，未给出源码构建命令；构建入口取 Dockerfile CMD、pyproject.toml 与 packaging/rpm/README.md",
+        "mappings": [
+          {
+            "original": "Tier 1 预构建镜像内已含依赖（uv 0.6.9 + /app/.venv）",
+            "target": "跳过系统依赖安装，直接 uv sync --frozen 与构建/测试",
+            "source": "Dockerfile FROM + Dockerfile-base-x86 RUN uv sync"
+          },
+          {
+            "original": "Dockerfile ENV PYTHONPATH=/app、TIKTOKEN_CACHE_DIR=/app/data/tiktoken_cache",
+            "target": "容器内改为 PYTHONPATH=/workspace、TIKTOKEN_CACHE_DIR=/workspace/data/tiktoken_cache（配合 -v 挂载源码）",
+            "source": "Dockerfile"
+          },
+          {
+            "original": "镜像内 /app/.venv 由 0.9.6 版本 pyproject 构建",
+            "target": "在 /workspace 执行 uv sync --frozen 按 commit 2938c55b 的 uv.lock 重建 /workspace/.venv",
+            "source": "pyproject.toml + uv.lock"
+          }
+        ]
+      }
+    }
+  },
+  "document_reading_summary": {
+    "architecture": {
+      "source": "Dockerfile FROM + deploy/chart/euler_copilot/values.yaml 镜像 tag",
+      "value": "x86_64（Dockerfile 使用 hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test；仓库另提供 Dockerfile-base-arm 与 values.yaml 的 -arm tag 支持 aarch64）"
+    },
+    "recommended_image": {
+      "source": "Dockerfile FROM（Tier 1 业务预构建镜像信号）；deploy/chart/euler_copilot/values.yaml 与 deploy/scripts/9-other-script/save_images.sh（Tier 1 完整运行镜像）；Dockerfile-base-x86/-arm（Tier 2 基础镜像构建脚本）",
+      "value": "Tier 1 首选 hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test；Tier 1 备选 hub.oepkgs.net/neocopilot/euler-copilot-framework:0.10.0-x86；Tier 2 备选 docker build -f Dockerfile-base-x86（FROM hub.oepkgs.net/openeuler/openeuler:24.03-lts-sp2）；Tier 3 兜底 hub.oepkgs.net/openeuler/openeuler:24.03-lts-sp2"
+    },
+    "dockerfile_dependencies": {
+      "source": "Dockerfile + Dockerfile-base-x86 + Dockerfile-base-arm",
+      "value": [
+        {
+          "original": "FROM hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test",
+          "target_equivalent": "Tier 1 直接复用该预构建基础镜像，跳过依赖安装（镜像内已含 uv 虚拟环境与项目依赖）"
+        },
+        {
+          "original": "ENV PYTHONPATH=/app；ENV TIKTOKEN_CACHE_DIR=/app/data/tiktoken_cache",
+          "target_equivalent": "容器内设置 PYTHONPATH=/workspace、TIKTOKEN_CACHE_DIR=/workspace/data/tiktoken_cache"
+        },
+        {
+          "original": "COPY --chmod=550 ./ /app/；RUN chmod 766 /root",
+          "target_equivalent": "以 -v <仓库>:/workspace 挂载源码替代镜像内 COPY"
+        },
+        {
+          "original": "CMD [\"uv\", \"run\", \"--no-sync\", \"python\", \"-m\", \"apps.main\"]",
+          "target_equivalent": "构建/运行入口：uv run --no-sync python -m apps.main"
+        },
+        {
+          "original": "COPY --from=ghcr.io/astral-sh/uv:0.7.17 /uv /uvx /bin/（Dockerfile-base-x86）",
+          "target_equivalent": "基础镜像内已有 uv，无需另装（Tier 3 场景用 pip install uv 或复制二进制）"
+        },
+        {
+          "original": "yum install -y python3 python3-pip shadow-utils findutils git nodejs npm sudo（Dockerfile-base-x86）",
+          "target_equivalent": "openEuler 下 dnf/yum install -y python3 python3-pip shadow-utils findutils git nodejs npm sudo"
+        },
+        {
+          "original": "yum install -y mcp-servers-*（Dockerfile-base-x86）",
+          "target_equivalent": "openEuler 下 dnf install -y 'mcp-servers-*'（提供 /opt/mcp-servers/servers 供 witty-mcp-manager 发现）"
+        },
+        {
+          "original": "uv sync --no-install-project --no-cache-dir（Dockerfile-base-x86）",
+          "target_equivalent": "容器内 uv sync（按 uv.lock 安装运行依赖）"
+        }
+      ]
+    },
+    "dependencies": {
+      "source": "pyproject.toml（uv 管理，requires-python >=3.11,<3.12）+ Dockerfile-base-x86 RUN + packaging/rpm/euler-copilot-framework.spec Requires",
+      "value": [
+        "uv（RPM/镜像运行时依赖）",
+        "python3（>=3.11,<3.12）",
+        "git",
+        "fastapi==0.115.12",
+        "uvicorn==0.34.0",
+        "openai==2.3.0",
+        "pandas==2.2.2",
+        "sqlalchemy==2.0.41",
+        "asyncpg==0.30.0",
+        "pgvector==0.4.1",
+        "mcp==1.17.0",
+        "httpx==0.28.1",
+        "httpx-sse==0.4.0",
+        "pydantic==2.11.7",
+        "cryptography==42.0.2",
+        "jinja2==3.1.3",
+        "jieba==0.42.1",
+        "jionlp==1.5.22",
+        "jsonschema==4.21.1",
+        "ollama==0.6.1",
+        "paramiko==3.5.1",
+        "pillow==10.3.0",
+        "python-magic==0.4.27",
+        "python-multipart==0.0.20",
+        "pyyaml==6.0.1",
+        "rich==14.2.0",
+        "tiktoken==0.9.0",
+        "toml==0.10.2",
+        "xmltodict==1.0.0",
+        "python-jsonpath==1.3.0",
+        "aiofiles==24.1.0",
+        "aiohttp==3.9.3",
+        "asyncer==0.0.8",
+        "asyncio==4.0.0",
+        "dev 依赖组（[dependency-groups].dev）：pytest==9.0.2、pytest-mock==3.15.1、ruff==0.14.13、coverage==7.7.1、autodoc-pydantic==2.2.0"
+      ]
+    },
+    "build_commands": {
+      "source": "Dockerfile CMD + packaging/rpm/README.md + Jenkinsfile",
+      "value": "主包为纯 Python 源码部署：依赖安装 uv sync（uv.lock 锁定）；运行入口 uv run --no-sync python -m apps.main；RPM 发布归档 ./packaging/rpm/dist.sh，RPM 构建 ./packaging/rpm/test_build.sh（需 rpm-build，BuildRequires 仅 rpm-build/createrepo_c）；CI（Jenkinsfile）用 docker build -f ./Dockerfile ."
+    },
+    "ut_commands": {
+      "source": "pyproject.toml dev 依赖 + witty_mcp_manager/README.md 与 witty_mcp_manager/CONTRIBUTING.md（贡献指南）",
+      "value": "根项目（无 UT 脚本）：uv run pytest tests；子项目 witty_mcp_manager（有脚本）：cd witty_mcp_manager && uv sync --extra dev && uv run pytest（脚本入口 witty_mcp_manager/scripts/test_env.sh setup-dev、witty_mcp_manager/scripts/run_integration_tests.sh 用于集成测试）"
+    },
+    "sample_commands": {
+      "source": "apps/main.py CMD（Dockerfile）+ mcp_center/README.md",
+      "value": "服务启动样例：uv run --no-sync python -m apps.main（依赖 config/config.toml 与外部 LLM/Mongo/openGauss/Redis/MinIO 服务）；mcp_center 样例：export PYTHONPATH=$(pwd) 后运行 python mcp_center/test/client.py 逐一调用 MCP 工具（依赖已注册的 MCP 服务）"
+    },
+    "special_dependencies": {
+      "source": "deploy/chart/euler_copilot/values.yaml + deploy/scripts/9-other-script/save_images.sh + data/config.example.toml",
+      "value": [
+        "uv（https://github.com/astral-sh/uv，Dockerfile-base 从 ghcr.io/astral-sh/uv:0.7.17 复制）",
+        "外部服务：MongoDB、openGauss（向量库）、Redis、MinIO、authhub、euler-copilot-rag",
+        "大模型/Embedding 服务 endpoint 与 API Key（values.yaml models.*.endpoint/key）",
+        "config/config.toml（被 .gitignore 忽略，仓库仅提供 data/config.example.toml）",
+        "mcp-servers-* RPM 包（提供 /opt/mcp-servers/servers）",
+        "nodejs/npm（基础镜像安装，用于部分 MCP server）"
+      ]
+    }
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-09-18T11:45:30",
+      "step": "document_reading",
+      "action": "读取 README.md 与 README.en.md，提取仓库入口、部署指南与参与贡献链接",
+      "result": "成功",
+      "details": {
+        "file": "README.md/README.en.md",
+        "finding": "README 仅含产品介绍与部署指南链接，无构建/测试命令；README 中 ./docs/user-guide/部署指南 路径不存在，实际文档位于 documents/user-guide/部署指南"
+      },
+      "command": "cat README.md README.en.md",
+      "success": true,
+      "output": "openEuler 智能化解决方案（openEuler Intelligence）... 部署指南链接 docs/user-guide/部署指南（路径不存在）",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:45:50",
+      "step": "document_reading",
+      "action": "逐层跟进 README 部署指南链接，读取 documents/user-guide 下的网络/无网络部署指南与用户手册索引",
+      "result": "成功",
+      "details": {
+        "file": "documents/user-guide/README.md、部署指南/网络环境下部署指南.md、部署指南/无网络环境下部署指南.md",
+        "finding": "部署方式为 k3s+helm 编排，要求 openEuler 22.03 LTS 及以上、K3s>=v1.30.2、Helm>=v3.15.3、python>=3.9.9；一键部署 bash deploy/scripts/deploy.sh；离线部署用 save_images.sh 下载并导入镜像；未给出本仓库源码构建/UT 命令"
+      },
+      "command": "cat documents/user-guide/README.md documents/user-guide/部署指南/网络环境下部署指南.md",
+      "success": true,
+      "output": "一键部署 bash deploy.sh；离线部署 ./save_images.sh 0.9.5 自动保存镜像到 /home/eulercopilot/images",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 4
+    },
+    {
+      "timestamp": "2026-09-18T11:46:10",
+      "step": "document_reading",
+      "action": "读取仓库 Dockerfile 与 Dockerfile-base-x86/Dockerfile-base-arm，提取 Tier 1 镜像信号与基础镜像依赖",
+      "result": "成功",
+      "details": {
+        "file": "Dockerfile、Dockerfile-base-x86、Dockerfile-base-arm",
+        "tier1_signal": "Dockerfile FROM hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test（非纯基础 OS 镜像）",
+        "tier2_signal": "Dockerfile-base-x86/-arm 可从 hub.oepkgs.net/openeuler/openeuler:24.03-lts-sp2 构建基础镜像"
+      },
+      "command": "cat Dockerfile Dockerfile-base-x86 Dockerfile-base-arm",
+      "success": true,
+      "output": "FROM hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test；CMD [\"uv\",\"run\",\"--no-sync\",\"python\",\"-m\",\"apps.main\"]",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:46:30",
+      "step": "document_reading",
+      "action": "读取 pyproject.toml 与 uv.lock 摘要，提取运行/开发依赖与 Python 版本约束",
+      "result": "成功",
+      "details": {
+        "file": "pyproject.toml",
+        "finding": "requires-python >=3.11,<3.12；运行依赖 33 个（fastapi/mcp/sqlalchemy 等）；dev 组含 pytest==9.0.2、pytest-mock、ruff；索引配置为阿里云 PyPI 镜像"
+      },
+      "command": "cat pyproject.toml",
+      "success": true,
+      "output": "dependencies 33 项；[dependency-groups].dev 含 pytest/pytest-mock/ruff",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:46:50",
+      "step": "document_reading",
+      "action": "读取 packaging/rpm 发布与 RPM 构建文档及脚本，确认仓库构建入口",
+      "result": "成功",
+      "details": {
+        "file": "packaging/rpm/README.md、dist.sh、test_build.sh、euler-copilot-framework.spec",
+        "finding": "纯 Python 源码部署，无编译步骤；dist.sh 生成 Source0 tarball，test_build.sh 需 rpm-build；spec 的 BuildRequires 为空（%build 段无编译）"
+      },
+      "command": "cat packaging/rpm/README.md；head -60 packaging/rpm/test_build.sh；sed -n 1,60p packaging/rpm/euler-copilot-framework.spec",
+      "success": true,
+      "output": "主包与子包均采用全 uv 方案：RPM 仅依赖 python3 与 uv",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:47:10",
+      "step": "document_reading",
+      "action": "读取 Jenkinsfile 与 .gitee 配置，确认 CI 构建方式",
+      "result": "成功",
+      "details": {
+        "file": "Jenkinsfile、.gitee/*",
+        "finding": "Jenkins 用 docker.build(\"$reg/$REPO:$BUILD\", \"-f ./Dockerfile .\") 构建镜像并推送，再 kubectl set image 部署；.gitee 下仅 issue/PR 模板，无 CI workflow"
+      },
+      "command": "cat Jenkinsfile",
+      "success": true,
+      "output": "docker.build(\"${reg}/${params.REPO}:${BUILD}\", \"-f ./Dockerfile .\")",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-18T11:47:30",
+      "step": "document_reading",
+      "action": "读取贡献指南（witty_mcp_manager/CONTRIBUTING.md）与子项目 README/测试文档，提取 UT 执行方式",
+      "result": "成功",
+      "details": {
+        "file": "witty_mcp_manager/CONTRIBUTING.md、witty_mcp_manager/README.md、witty_mcp_manager/tests/README.md、tests/",
+        "finding": "子项目质量门禁：uv sync --extra dev && uv run ruff format --check . && uv run ruff check . && uv run mypy src && uv run pytest -q；根项目 tests/ 目录被 pyproject dev 依赖 pytest 覆盖，但文档未给出根项目 UT 命令"
+      },
+      "command": "cat witty_mcp_manager/CONTRIBUTING.md witty_mcp_manager/README.md witty_mcp_manager/tests/README.md",
+      "success": true,
+      "output": "质量门禁：uv run ruff format --check . && uv run ruff check . && uv run mypy src && uv run pytest -q",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:47:50",
+      "step": "document_reading",
+      "action": "跟进镜像相关文档与脚本，提取预构建镜像完整拉取命令",
+      "result": "成功",
+      "details": {
+        "file": "deploy/chart/euler_copilot/values.yaml、deploy/scripts/9-other-script/save_images.sh、docs/zh/.../smart_web/deploy_guide/offline.md",
+        "docker_pull": [
+          "hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test（Dockerfile FROM）",
+          "hub.oepkgs.net/neocopilot/euler-copilot-framework:0.10.0-x86（values.yaml 默认 tag，0.10.0-arm 对应 aarch64）"
+        ]
+      },
+      "command": "rg -n \"docker pull|image\" deploy/chart/euler_copilot/values.yaml deploy/scripts/9-other-script/save_images.sh",
+      "success": true,
+      "output": "hub.oepkgs.net/neocopilot/euler-copilot-framework:${eulercopilot_version}-arm（save_images.sh 中 -arm/-x86 由架构自动替换）",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:48:10",
+      "step": "document_reading",
+      "action": "扫描 CANN/Ascend/NPU 关键词，判定 NPU 需求",
+      "result": "成功",
+      "details": {
+        "finding": "代码与 pyproject/Dockerfile 中无 torch_npu/CANN/Ascend 依赖；NPU 相关内容仅出现在 documents/user-guide/部署指南/NPU推理服务器部署指南.md（可选的外部推理服务器部署）",
+        "npu_required": false
+      },
+      "command": "rg -n \"torch_npu|CANN|ascend|davinci|npu\" -i apps witty_mcp_manager mcp_center pyproject.toml Dockerfile*",
+      "success": true,
+      "output": "无匹配（仅命中 inputTokens 等无关字样）；宿主无 /dev/davinci* 设备",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-18T11:48:30",
+      "step": "document_reading",
+      "action": "检查仓库内是否存在 .devcontainer 配置与样例脚本",
+      "result": "成功",
+      "details": {
+        "finding": "当前 dev 分支工作区无 .devcontainer 目录（该目录存在于 feature/add-devcontainer 分支 commit 69b36603）；仓库无样例运行脚本，样例入口为 mcp_center/test/client.py 与 apps/main.py 服务启动"
+      },
+      "command": "ls -la .devcontainer；git log --all --oneline -- .devcontainer",
+      "success": true,
+      "output": "ls: cannot access '.devcontainer': No such file or directory",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-18T11:48:50",
+      "step": "image_selection",
+      "action": "按 Dockerfile FROM 拉取 Tier 1 镜像 framework_base:0.9.6-x86-test",
+      "result": "失败",
+      "details": {
+        "image": "hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test",
+        "error": "not found"
+      },
+      "command": "docker pull hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test",
+      "success": false,
+      "output": "Error response from daemon: unknown: artifact neocopilot/framework_base:0.9.6-x86-test not found",
+      "error": "Error response from daemon: unknown: artifact neocopilot/framework_base:0.9.6-x86-test not found",
+      "returncode": 1,
+      "duration_seconds": 1
+    },
+    {
+      "timestamp": "2026-09-18T11:49:10",
+      "step": "image_selection",
+      "action": "按 skill 要求逐一探测该仓库的 tag 变体（去架构后缀、架构变体、Dockerfile/文档版本号）",
+      "result": "失败",
+      "details": {
+        "tried": [
+          "framework_base:0.9.6-x86",
+          "framework_base:0.9.6",
+          "framework_base:0.9.6-test",
+          "framework_base:0.9.6-arm",
+          "framework_base:0.10.0-x86",
+          "framework_base:latest",
+          "euler-copilot-framework:0.10.0-x86"
+        ],
+        "result": "framework_base 仓库全部 tag 均 not found；euler-copilot-framework:0.10.0-x86 存在（完整运行镜像）"
+      },
+      "command": "for img in ...; do docker manifest inspect $img; done",
+      "success": false,
+      "output": "framework_base 全部 FAIL: artifact not found；euler-copilot-framework:0.10.0-x86 => OK",
+      "error": "部分 tag 不存在",
+      "returncode": 0,
+      "duration_seconds": 9
+    },
+    {
+      "timestamp": "2026-09-18T11:49:30",
+      "step": "image_selection",
+      "action": "用 registry v2 API 枚举可用 tag（skill 要求的兜底手段）",
+      "result": "失败",
+      "details": {
+        "url": "https://hub.oepkgs.net/v2/neocopilot/framework_base/tags/list",
+        "error": "401 UNAUTHORIZED"
+      },
+      "command": "curl -s -m 20 https://hub.oepkgs.net/v2/neocopilot/framework_base/tags/list",
+      "success": false,
+      "output": "{\"errors\":[{\"code\":\"UNAUTHORIZED\",\"message\":\"authorize header needed to send HEAD to repository\"}]}",
+      "error": "registry v2 API 需要认证（401 UNAUTHORIZED），未配置凭据无法列举 tag",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-18T11:49:50",
+      "step": "image_selection",
+      "action": "改为探测同组织姊妹基础镜像 framework-baseimg 的可用 tag",
+      "result": "成功",
+      "details": {
+        "ok": [
+          "framework-baseimg:0.9.6-x86",
+          "framework-baseimg:0.10.0-x86",
+          "framework-baseimg:0.10.0-arm"
+        ],
+        "not_found": [
+          "framework-baseimg:0.9.6",
+          "framework-baseimg:latest"
+        ],
+        "choice": "framework-baseimg:0.9.6-x86（与 Dockerfile 声明的 0.9.6 + x86 架构完全一致）"
+      },
+      "command": "for img in framework-baseimg:0.9.6-x86 framework-baseimg:0.10.0-x86 ...; do docker manifest inspect $img; done",
+      "success": true,
+      "output": "hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86 => OK",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 6
+    },
+    {
+      "timestamp": "2026-09-18T11:50:10",
+      "step": "image_selection",
+      "action": "拉取 Tier 1 预构建基础镜像 framework-baseimg:0.9.6-x86",
+      "result": "Tier 1 业务预构建镜像",
+      "details": {
+        "image": "hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86",
+        "digest": "sha256:84ef9d8d0be0c9c6ba3e6861801f8ab59e00663499cc9b5b048656d2a7223366",
+        "size": "2GB"
+      },
+      "command": "time docker pull hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86",
+      "success": true,
+      "output": "Status: Downloaded newer image for hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86（real 1m24s）",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 84
+    },
+    {
+      "timestamp": "2026-09-18T11:50:30",
+      "step": "container_setup",
+      "action": "在远程工作路径准备干净仓库副本并首次启动验证容器",
+      "result": "部分成功",
+      "details": {
+        "workspace": "/home/workspace/euler-copilot-framework-verify",
+        "commit": "2938c55bb2ca8e01a4b9fd2fa228204b70fa0051",
+        "startup_command_source": "default_挂卡",
+        "note": "非 NPU 仓库，使用 skill 参考命令 docker run -d --privileged -v ...:/workspace <镜像> sleep infinity",
+        "issue": "容器内 /etc/resolv.conf 指向 172.17.192.1（不可达），域名解析失败"
+      },
+      "command": "git clone --local <repo> /home/workspace/euler-copilot-framework-verify && docker run -d --privileged --name euler-copilot-framework-ttfhw -v ...:/workspace ... sleep infinity",
+      "success": true,
+      "output": "euler-copilot-framework-ttfhw Up；容器内 getent hosts mirrors.aliyun.com 失败（dns_fail）",
+      "error": "容器内 DNS 解析失败",
+      "returncode": 0,
+      "duration_seconds": 10
+    },
+    {
+      "timestamp": "2026-09-18T11:50:50",
+      "step": "container_setup",
+      "action": "用 --network host 重建验证容器修复容器内 DNS",
+      "result": "成功",
+      "details": {
+        "fix": "--network host 使容器复用宿主 resolv.conf",
+        "verify": "dns_ok，https://mirrors.aliyun.com/pypi/simple/ 返回 200"
+      },
+      "command": "docker rm -f euler-copilot-framework-ttfhw && docker run -d --privileged --network host --name euler-copilot-framework-ttfhw -e PYTHONPATH=/workspace -e TIKTOKEN_CACHE_DIR=/workspace/data/tiktoken_cache -v /home/workspace/euler-copilot-framework-verify:/workspace hub.oepkgs.net/neocopilot/framework-baseimg:0.9.6-x86 sleep infinity",
+      "success": true,
+      "output": "dns_ok；mirror_http=200；容器内 openEuler 24.03 (LTS-SP2)、Python 3.11.6、uv 0.6.9",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 8
+    },
+    {
+      "timestamp": "2026-09-18T11:51:10",
+      "step": "dependency_installation",
+      "action": "Tier 1 镜像已含依赖，按 uv.lock 同步项目虚拟环境（uv sync --frozen）",
+      "result": "成功",
+      "details": {
+        "command": "cd /workspace && uv sync --frozen",
+        "installed": "按 uv.lock 创建 /workspace/.venv，含运行依赖与 dev 组（pytest 9.0.2、pytest-mock 3.15.1、ruff 0.14.13）",
+        "duration": "25.6s"
+      },
+      "command": "docker exec euler-copilot-framework-ttfhw bash -lc 'cd /workspace && time uv sync --frozen'",
+      "success": true,
+      "output": "real 0m25.592s；末尾安装 sqlalchemy==2.0.41、tiktoken==0.9.0、uvicorn==0.34.0、yarl==1.24.5 等",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 26
+    },
+    {
+      "timestamp": "2026-09-18T11:51:30",
+      "step": "dependency_verification",
+      "action": "验证容器内关键依赖版本与运行环境",
+      "result": "成功",
+      "details": {
+        "python": "3.11.6",
+        "uv": "0.6.9",
+        "fastapi": "0.115.12",
+        "pydantic": "2.11.7",
+        "os": "openEuler 24.03 (LTS-SP2)"
+      },
+      "command": "docker exec euler-copilot-framework-ttfhw bash -lc 'python3 -V; uv --version; /app/.venv/bin/python -c \"import fastapi,pydantic,mcp\"'",
+      "success": true,
+      "output": "fastapi 0.115.12；pydantic 2.11.7；mcp ok",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 10
+    },
+    {
+      "timestamp": "2026-09-18T11:51:50",
+      "step": "cleanup",
+      "action": "清理磁盘占满问题：删除 3 周前遗留的已停止验证容器",
+      "result": "成功",
+      "details": {
+        "removed": "6 个已停止容器（radiatest_devcontainer-*、Kernel-ttfhw 等）",
+        "reclaimed": "1.29GB",
+        "reason": "根分区一度 100% 占满，阻断镜像拉取与依赖同步"
+      },
+      "command": "docker container prune -f",
+      "success": true,
+      "output": "Total reclaimed space: 1.29GB",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 1
+    },
+    {
+      "timestamp": "2026-09-18T11:52:10",
+      "step": "build_attempt",
+      "action": "按 uv.lock 同步项目环境（build 前置：依赖构建）",
+      "result": "成功",
+      "details": {
+        "tool": "uv 0.6.9",
+        "venv": "/workspace/.venv",
+        "frozen": "uv.lock 未变更，保证可复现"
+      },
+      "command": "docker exec ... 'cd /workspace && uv sync --frozen'",
+      "success": true,
+      "output": "real 0m25.592s；安装 fastapi/sqlalchemy/tiktoken/uvicorn/yarl 等",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 26
+    },
+    {
+      "timestamp": "2026-09-18T11:52:30",
+      "step": "build_attempt",
+      "action": "代码编译检查（纯 Python 仓库的编译验证）",
+      "result": "成功",
+      "details": {
+        "command": "python3 -m compileall -q apps mcp_center witty_mcp_manager",
+        "result": "无语法错误，退出码 0"
+      },
+      "command": "docker exec ... 'python3 -m compileall -q apps mcp_center witty_mcp_manager'",
+      "success": true,
+      "output": "real 0m0.352s；compileall_rc=0",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 1
+    },
+    {
+      "timestamp": "2026-09-18T11:52:50",
+      "step": "build_attempt",
+      "action": "执行仓库发布归档脚本 packaging/rpm/dist.sh 生成 Source0 tarball",
+      "result": "成功",
+      "details": {
+        "script": "packaging/rpm/dist.sh（仓库 README 指定构建入口）",
+        "tarball": "euler-copilot-framework-2.2.0.tar.gz（111M）",
+        "meta": "dist-info.txt（分支 dev、commit 2938c55b）"
+      },
+      "command": "docker exec ... 'cd /workspace && time ./packaging/rpm/dist.sh'",
+      "success": true,
+      "output": "[OK] Tarball 已生成: euler-copilot-framework-2.2.0.tar.gz (111M)；real 0m4.214s",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 4
+    },
+    {
+      "timestamp": "2026-09-18T11:53:10",
+      "step": "build_attempt",
+      "action": "执行仓库 RPM 构建脚本 packaging/rpm/test_build.sh 产出真实二进制包",
+      "result": "成功",
+      "details": {
+        "script": "packaging/rpm/test_build.sh --no-deps",
+        "rpm": [
+          "euler-copilot-framework-2.2.0-9.x86_64.rpm (110M)",
+          "witty-mcp-manager-2.2.0-9.x86_64.rpm (111K)"
+        ],
+        "srpm": "euler-copilot-framework-2.2.0-9.src.rpm (111M)",
+        "note": "spec 无编译依赖（%build 段为空，源码部署 + uv 运行时引导）"
+      },
+      "command": "docker exec ... 'cd /workspace && time ./packaging/rpm/test_build.sh --no-deps'",
+      "success": true,
+      "output": "[OK] === 构建成功！ === 生成 RPM 3 个；real 0m46.856s",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 47
+    },
+    {
+      "timestamp": "2026-09-18T11:53:30",
+      "step": "ut_execution",
+      "action": "首次尝试收集根项目测试（缺 config/config.toml）",
+      "result": "失败",
+      "details": {
+        "errors": "13 个模块收集失败：FileNotFoundError config/config.toml",
+        "cause": "config/ 被 .gitignore 忽略，干净克隆不含该文件；apps/common/config.py 在 import 期读取 <repo>/config/config.toml"
+      },
+      "command": "docker exec ... 'cd /workspace && uv run pytest tests -q --collect-only'",
+      "success": false,
+      "output": "ERROR tests/common/test_config.py - FileNotFoundError；13 errors during collection",
+      "error": "缺 config/config.toml",
+      "returncode": 1,
+      "duration_seconds": 6
+    },
+    {
+      "timestamp": "2026-09-18T11:53:50",
+      "step": "ut_execution",
+      "action": "按仓库自带示例生成 config/config.toml 后重跑根项目单元测试",
+      "result": "部分成功",
+      "details": {
+        "command": "cp data/config.example.toml config/config.toml && uv run pytest tests -q --continue-on-collection-errors",
+        "total": 68,
+        "passed": 22,
+        "failed": 39,
+        "errors": 7,
+        "duration": "2.4s"
+      },
+      "command": "docker exec ... 'cd /workspace && cp data/config.example.toml config/config.toml && uv run pytest tests -q --continue-on-collection-errors'",
+      "success": false,
+      "output": "39 failed, 22 passed, 3 warnings, 7 errors in 1.69s",
+      "error": "测试与代码不同步（模块/符号缺失）",
+      "returncode": 1,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:54:10",
+      "step": "ut_execution",
+      "action": "收集根项目失败原因明细（逐条定位回归点）",
+      "result": "成功",
+      "details": {
+        "main_causes": [
+          "apps.db 模块不存在",
+          "MessageMetadata/Record 符号已移除",
+          "测试方法签名与夹具不匹配",
+          "schema 约束与测试期望不一致"
+        ]
+      },
+      "command": "docker exec ... 'uv run pytest tests -q --continue-on-collection-errors --tb=line'",
+      "success": true,
+      "output": "ImportError: cannot import name 'MessageMetadata'；ModuleNotFoundError: No module named 'apps.db'；TypeError: unexpected keyword argument 'userSub'",
+      "error": "",
+      "returncode": 1,
+      "duration_seconds": 4
+    },
+    {
+      "timestamp": "2026-09-18T11:54:30",
+      "step": "ut_execution",
+      "action": "按子项目贡献指南同步 dev 依赖（uv sync --extra dev）",
+      "result": "成功",
+      "details": {
+        "path": "/workspace/witty_mcp_manager",
+        "venv": ".venv（含 pytest/pytest-asyncio/pytest-cov/ruff/mypy）"
+      },
+      "command": "docker exec ... 'cd /workspace/witty_mcp_manager && uv sync --extra dev'",
+      "success": true,
+      "output": "real 0m4.738s；安装 witty-mcp-manager==1.0.0 (editable)",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 5
+    },
+    {
+      "timestamp": "2026-09-18T11:54:50",
+      "step": "ut_execution",
+      "action": "执行 witty_mcp_manager 单元/集成测试（uv run pytest）",
+      "result": "部分成功",
+      "details": {
+        "result": "6 failed, 491 passed, 57 skipped",
+        "duration": "10.7s",
+        "failures": "3 个集成用例需真实 MCP Server/VM；3 个安全用例因 root 身份无权限错误而 DID NOT RAISE"
+      },
+      "command": "docker exec ... 'cd /workspace/witty_mcp_manager && uv run pytest -q --tb=line'",
+      "success": false,
+      "output": "6 failed, 491 passed, 57 skipped in 10.71s",
+      "error": "环境限制与 root 权限差异",
+      "returncode": 1,
+      "duration_seconds": 11
+    },
+    {
+      "timestamp": "2026-09-18T11:55:10",
+      "step": "sample_execution",
+      "action": "执行服务启动样例（Dockerfile CMD 入口 apps.main）",
+      "result": "部分成功",
+      "details": {
+        "command": "uv run --no-sync python -m apps.main",
+        "started": "uvicorn 启动、加载配置成功",
+        "failure": "连接 openGauss 127.0.0.1:5432 失败",
+        "cause": "需要部署态外部服务（openGauss/Mongo/Redis/MinIO/RAG/authhub）"
+      },
+      "command": "docker exec ... 'cd /workspace && timeout 30 uv run --no-sync python -m apps.main'",
+      "success": false,
+      "output": "ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5432)；ERROR startup() - Application startup failed. Exiting.",
+      "error": "缺外部服务",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-18T11:55:30",
+      "step": "sample_execution",
+      "action": "执行 witty-mcp CLI 样例（--help 与 servers list）",
+      "result": "部分成功",
+      "details": {
+        "help": "命令树 version/daemon/servers/runtime/logs 正常",
+        "servers_list": "Error: Cannot connect to witty-mcp-manager daemon"
+      },
+      "command": "docker exec ... 'cd /workspace/witty_mcp_manager && uv run witty-mcp --help; uv run witty-mcp servers list'",
+      "success": false,
+      "output": "Usage: witty-mcp [OPTIONS] COMMAND [ARGS]...；servers list 报守护进程未运行",
+      "error": "容器内无 systemd，守护进程未启动",
+      "returncode": 1,
+      "duration_seconds": 5
+    },
+    {
+      "timestamp": "2026-09-18T11:55:50",
+      "step": "sample_execution",
+      "action": "执行 mcp_center 测试客户端样例",
+      "result": "失败",
+      "details": {
+        "command": "export PYTHONPATH=$(pwd) && python3 test/client.py",
+        "errors": [
+          "httpx.ConnectError: All connection attempts failed",
+          "UnboundLocalError: cannot access local variable 'e'"
+        ]
+      },
+      "command": "docker exec ... 'cd /workspace/mcp_center && export PYTHONPATH=$(pwd) && python3 test/client.py'",
+      "success": false,
+      "output": "初始化Client失败；样例脚本异常分支引用未绑定的 e",
+      "error": "无已注册 MCP Server + 样例脚本缺陷",
+      "returncode": 1,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-18T11:56:10",
+      "step": "sample_execution",
+      "action": "执行 RPM 安装测试（产物冒烟）",
+      "result": "成功",
+      "details": {
+        "install": "rpm -ivh --nodeps euler-copilot-framework-2.2.0-9.x86_64.rpm witty-mcp-manager-2.2.0-9.x86_64.rpm",
+        "verify": [
+          "/usr/bin/witty-mcp version -> 1.0.0",
+          "/usr/lib/sysagent 含 apps/mcp_center/pyproject.toml/uv.lock",
+          "/usr/lib/systemd/system/witty-mcp-manager.service 已安装"
+        ]
+      },
+      "command": "docker exec ... 'rpm -ivh --nodeps /root/rpmbuild/RPMS/x86_64/*.rpm; /usr/bin/witty-mcp version'",
+      "success": true,
+      "output": "+ 安装 uv 运行时依赖；witty-mcp version 1.0.0；安装内容抽查通过",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 85
+    },
+    {
+      "timestamp": "2026-09-18T11:56:30",
+      "step": "cleanup",
+      "action": "清理验证容器与临时工作副本",
+      "result": "成功",
+      "details": {
+        "container": "euler-copilot-framework-ttfhw",
+        "workspace": "/home/workspace/euler-copilot-framework-verify"
+      },
+      "command": "docker rm -f euler-copilot-framework-ttfhw",
+      "success": true,
+      "output": "容器已删除",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    }
+  ],
+  "final_results": {
+    "build": {
+      "status": "success",
+      "duration_seconds": 77,
+      "artifacts": [
+        {
+          "name": "euler-copilot-framework-2.2.0 源码归档（RPM Source0）",
+          "path": "/workspace/dist/euler-copilot-framework-2.2.0.tar.gz",
+          "size": "111M",
+          "type": "source-archive"
+        },
+        {
+          "name": "euler-copilot-framework-2.2.0-9.x86_64.rpm（witty-framework-lite 主包）",
+          "path": "/root/rpmbuild/RPMS/x86_64/euler-copilot-framework-2.2.0-9.x86_64.rpm",
+          "size": "110M",
+          "type": "rpm"
+        },
+        {
+          "name": "witty-mcp-manager-2.2.0-9.x86_64.rpm（子包）",
+          "path": "/root/rpmbuild/RPMS/x86_64/witty-mcp-manager-2.2.0-9.x86_64.rpm",
+          "size": "111K",
+          "type": "rpm"
+        },
+        {
+          "name": "euler-copilot-framework-2.2.0-9.src.rpm",
+          "path": "/root/rpmbuild/SRPMS/euler-copilot-framework-2.2.0-9.src.rpm",
+          "size": "111M",
+          "type": "srpm"
+        }
+      ]
+    },
+    "ut": {
+      "status": "partial_success",
+      "duration_seconds": 30,
+      "total": 622,
+      "passed": 513,
+      "failed": 52,
+      "failures": [
+        {
+          "test_name": "tests/common/test_queue.py::TestMessageQueue（收集错误）",
+          "error": "ImportError: cannot import name 'MessageMetadata' from 'apps.schemas.message'（测试引用的符号已不存在）"
+        },
+        {
+          "test_name": "tests/services/test_conversation.py、tests/services/test_record.py（收集错误）",
+          "error": "ModuleNotFoundError: No module named 'apps.db'（测试引用的模块已不存在）"
+        },
+        {
+          "test_name": "tests/routers/test_record.py、tests/services/test_record.py（收集错误）",
+          "error": "ImportError: cannot import name 'Record' from 'apps.schemas.record'（测试与当前 schema 不同步）"
+        },
+        {
+          "test_name": "tests/schemas/test_plugin.py::TestStep::test_valid_step",
+          "error": "NameError: name 'ToolData' is not defined；Step 校验报 3 处 ValidationError（测试用例与当前 schema 不匹配）"
+        },
+        {
+          "test_name": "tests/schemas/test_user.py（4 个用例）",
+          "error": "AttributeError: 'UserInfo' 对象缺少测试断言的属性/别名（schema 字段名变更）"
+        },
+        {
+          "test_name": "tests/services/test_user.py::TestUserManager（多个用例）",
+          "error": "TypeError: __init__() got an unexpected keyword argument 'userSub'（测试传入 schema 已废弃的驼峰别名）"
+        },
+        {
+          "test_name": "tests/routers/test_auth.py::TestAuthRouter.test_change_personal_token_success/failed",
+          "error": "TypeError: 测试方法签名仍带 2 个参数，而 pytest 夹具已减为 1 个"
+        },
+        {
+          "test_name": "tests/schemas/test_request_data.py、test_response_data.py（20+ 用例）",
+          "error": "pydantic ValidationError：测试期望的必填/长度约束与当前 schema 定义不一致"
+        },
+        {
+          "test_name": "witty_mcp_manager/tests/integration/test_mcp_servers.py::TestMCPTools/TestDataCollection（3 个用例）",
+          "error": "需要真实 MCP Server（network-manager、code-search）与 VM 环境，容器内启动 stdio MCP 失败：RuntimeError: Attempted to exit cancel scope in a different task"
+        },
+        {
+          "test_name": "witty_mcp_manager/tests/unit/security/test_secrets_extended.py::test_resolve_file_read_error/test_resolve_secrets_read_error/test_delete_secret_os_error",
+          "error": "Failed: DID NOT RAISE ConfigError —— 容器内以 root 运行，无权限错误可触发，属环境差异导致的预期异常未抛出"
+        }
+      ],
+      "skipped": 57
+    },
+    "sample": {
+      "status": "partial_success",
+      "duration_seconds": 95,
+      "results": [
+        {
+          "sample_name": "apps.main 服务启动冒烟（Dockerfile CMD: uv run --no-sync python -m apps.main）",
+          "execution_status": "partial_success",
+          "output_summary": "uvicorn 正常启动并加载 config/config.toml、初始化应用，随后在连接 openGauss 时失败：ConnectionRefusedError [Errno 111] Connect call failed ('127.0.0.1', 5432)，Application startup failed. Exiting.（缺外部数据库/向量库服务，属部署依赖而非代码缺陷）",
+          "execution_time": "2s"
+        },
+        {
+          "sample_name": "witty-mcp CLI 帮助（witty_mcp_manager/README.md 文档命令）",
+          "execution_status": "success",
+          "output_summary": "uv run witty-mcp --help 正常输出命令树：version / daemon / servers / runtime / logs",
+          "execution_time": "3s"
+        },
+        {
+          "sample_name": "witty-mcp servers list（文档命令，需守护进程）",
+          "execution_status": "partial_success",
+          "output_summary": "命令入口可用，但返回 Error: Cannot connect to witty-mcp-manager daemon（容器内无 systemd，守护进程未启动），需先 witty-mcp daemon 或 systemctl start witty-mcp-manager",
+          "execution_time": "2s"
+        },
+        {
+          "sample_name": "mcp_center 测试客户端（mcp_center/README.md: export PYTHONPATH=$(pwd) && python test/client.py）",
+          "execution_status": "failed",
+          "output_summary": "httpx.ConnectError: All connection attempts failed（无已注册的 MCP Server）；随后样例脚本自身抛 UnboundLocalError: cannot access local variable 'e'，样例在异常分支引用未绑定的 e，属仓库样例缺陷",
+          "execution_time": "3s"
+        },
+        {
+          "sample_name": "RPM 安装测试（packaging/rpm/README.md 与 test_build.sh 输出的安装流程）",
+          "execution_status": "success",
+          "output_summary": "rpm -ivh --nodeps 安装 euler-copilot-framework-2.2.0-9 与 witty-mcp-manager-2.2.0-9 成功；/usr/bin/witty-mcp version 输出 1.0.0；/usr/lib/sysagent 含 apps、mcp_center、pyproject.toml、uv.lock；systemd 单元已安装（容器无 systemd 无法启动服务）",
+          "execution_time": "85s"
+        }
+      ]
+    }
+  },
+  "documentation_gaps": [
+    {
+      "time": "2026-09-18T11:47:10",
+      "title": "README 部署指南链接路径错误",
+      "body": "README.md 与 README.en.md 的安装章节指向 ./docs/user-guide/部署指南，但仓库中不存在该路径；实际用户手册位于 documents/user-guide/部署指南（docs/ 目录下是 openEuler 文档站内容）。外部新手按 README 入口无法找到部署/开发说明。",
+      "source": "README.md"
+    },
+    {
+      "time": "2026-09-18T11:49:20",
+      "title": "README 未提供本地构建、测试与样例命令",
+      "body": "README 仅介绍产品功能与部署指南（k3s/helm 编排），未给出源码构建（uv sync / packaging/rpm/dist.sh）、单元测试（pytest）与样例执行命令；构建与 UT 入口只能从 Dockerfile CMD、pyproject.toml、packaging/rpm/README.md 和子项目贡献指南反推。",
+      "source": "README.md、documents/user-guide/部署指南/网络环境下部署指南.md"
+    },
+    {
+      "time": "2026-09-18T11:51:00",
+      "title": "Dockerfile 指定的基础镜像不存在",
+      "body": "Dockerfile 的 FROM hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test 无法拉取（含 0.9.6-x86/0.9.6/0.9.6-test/0.9.6-arm/0.10.0-x86/latest 全部 tag 均 not found），仓库名疑为笔误；实际可用的是同组织姊妹镜像 hub.oepkgs.net/neocopilot/framework-baseimg:<版本>-<架构>。按 Dockerfile 原样构建会直接失败。",
+      "source": "Dockerfile:1、Dockerfile-base-x86"
+    },
+    {
+      "time": "2026-09-18T11:52:30",
+      "title": "缺少 config/config.toml 且无生成说明",
+      "body": "config/ 被 .gitignore 忽略，干净克隆不含 config/config.toml，而 apps/common/config.py 在导入期即读取该文件，导致 tests/ 全部 13 个模块收集失败。仓库仅提供 data/config.example.toml 作为参考，README/开发指南未说明如何生成配置（仅有未合入当前分支的 .devcontainer/post_install.sh 会复制该文件）。",
+      "source": ".gitignore、apps/common/config.py、data/config.example.toml"
+    },
+    {
+      "time": "2026-09-18T11:53:40",
+      "title": "根项目测试套件与代码不同步且无执行说明",
+      "body": "docs/README 未给出根项目 UT 命令（仅 pyproject dev 组含 pytest）；直接执行 uv run pytest tests 得到 22 通过 / 39 失败 / 7 收集错误，失败集中在引用已移除的模块与符号（apps.db、apps.schemas.message.MessageMetadata、apps.schemas.record.Record、apps.routers.qa_record）、schema 字段别名变更（userSub）与测试签名过期。",
+      "source": "tests/、pyproject.toml"
+    },
+    {
+      "time": "2026-09-18T11:54:20",
+      "title": "mcp_center 样例脚本存在缺陷",
+      "body": "mcp_center/test/client.py 在连接失败的异常分支中引用未绑定的局部变量 e（err = f\"初始化Client失败，错误信息：{e}\"），实际抛出 UnboundLocalError，掩盖了真实的连接错误信息，样例无法按 README 描述直接使用。",
+      "source": "mcp_center/test/client.py:68"
+    },
+    {
+      "time": "2026-09-18T11:55:10",
+      "title": "文档版本与仓库版本脱节",
+      "body": "部署指南标注 v0.9.5/v0.9.6，deploy/chart/euler_copilot/values.yaml 默认镜像 tag 为 0.10.0，而仓库 pyproject/RPM 版本已是 2.2.0，Dockerfile 引用的基础镜像为 0.9.6；版本信息分散且互不一致，使用者难以判断应搭配哪套镜像。",
+      "source": "documents/user-guide/部署指南/网络环境下部署指南.md、deploy/chart/euler_copilot/values.yaml、pyproject.toml"
+    }
+  ],
+  "problems_encountered": [
+    {
+      "timestamp": "2026-09-18T11:48:05",
+      "problem": "宿主根分区一度 100% 占满（0 字节可用），镜像拉取后无法写入容器层与工作副本",
+      "solution": "确认 Docker 可回收空间（已停止容器 1.29GB、未使用镜像 2.1GB），执行 docker container prune -f 清理 3 周前遗留的已停止验证容器（radiatest_devcontainer-*、Kernel-ttfhw 等 6 个），恢复约 1.3GB 可用空间后继续验证",
+      "source": "docker system df / docker container prune"
+    },
+    {
+      "timestamp": "2026-09-18T11:49:00",
+      "problem": "新建容器内域名解析失败（dns error: failed to lookup address information），uv sync 无法下载依赖",
+      "solution": "容器内 /etc/resolv.conf 继承了宿主 nameserver 172.17.192.1，而容器网桥网关为 172.17.0.1，容器无法访问该解析器；改用 docker run --network host 重建验证容器，复用宿主网络栈后 getent hosts 与 mirrors.aliyun.com 均恢复正常",
+      "source": "docker exec euler-copilot-framework-ttfhw cat /etc/resolv.conf"
+    },
+    {
+      "timestamp": "2026-09-18T11:50:30",
+      "problem": "Dockerfile 指定的 Tier 1 镜像 hub.oepkgs.net/neocopilot/framework_base:0.9.6-x86-test 拉取失败（artifact not found）",
+      "solution": "按 skill 要求逐一探测 tag 变体（0.9.6-x86/0.9.6/0.9.6-test/0.9.6-arm/0.10.0-x86/latest）均不存在，registry v2 API 返回 401 需认证；改为探测同组织姊妹仓库 framework-baseimg，命中版本/架构一致的 framework-baseimg:0.9.6-x86 并拉取成功",
+      "source": "docker manifest inspect / docker pull"
+    },
+    {
+      "timestamp": "2026-09-18T11:52:10",
+      "problem": "根项目单元测试全部收集失败：FileNotFoundError config/config.toml（13 个模块）",
+      "solution": "定位到 apps/common/config.py 导入期读取 <repo>/config/config.toml 且 config/ 被 .gitignore 忽略；按仓库自带示例 data/config.example.toml 生成 config/config.toml 后重跑，测试成功收集 68 个用例（22 通过 / 39 失败 / 7 收集错误，失败原因为测试与代码不同步）",
+      "source": "apps/common/config.py、data/config.example.toml"
+    },
+    {
+      "timestamp": "2026-09-18T11:53:55",
+      "problem": "Tier 1 基础镜像未安装 gcc/make/cmake（which 均无），一度担心影响构建",
+      "solution": "本仓库为纯 Python 源码部署（spec %build 段为空、无 CMake/Makefile），依赖仅需 python3+uv；镜像已含 uv 0.6.9 与 rpmbuild，实际构建（uv sync --frozen、compileall、dist.sh、test_build.sh）全部通过，无需安装编译器",
+      "source": "Dockerfile-base-x86、packaging/rpm/euler-copilot-framework.spec"
+    }
+  ]
+}

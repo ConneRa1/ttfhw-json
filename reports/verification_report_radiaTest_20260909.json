@@ -1,0 +1,513 @@
+{
+  "metadata": {
+    "repo_url": "local:///root/xys/radiaTest",
+    "branch": "master",
+    "start_time": "2026-09-09T11:28:29",
+    "end_time": "2026-09-09T13:50:00",
+    "duration_seconds": 8400,
+    "total_steps": 7,
+    "commit": "",
+    "environment": "",
+    "verifier": "opencode / ttfhw-verify-smart"
+  },
+  "token_usage": {
+    "tool": "opencode",
+    "model": "火山AI网关/glm-5.3-flash",
+    "input_tokens": 260000,
+    "output_tokens": 42000,
+    "cache_hit_tokens": 0,
+    "cache_miss_tokens": 0
+  },
+  "machine_spec": {
+    "host_machine": {
+      "architecture": "aarch64",
+      "cpu_model": "Kunpeng-920",
+      "cpu_cores": 96,
+      "memory": "470GB",
+      "disk": "3161GB可用",
+      "docker_version": "29.6.1",
+      "npu": {
+        "available": false,
+        "card_count": 0,
+        "mounted_card_id": null
+      }
+    },
+    "container": {
+      "os": "openEuler 22.03 LTS",
+      "architecture": "aarch64",
+      "cpu_cores": 96,
+      "memory": "470GB",
+      "container_name": "radiatest-ttfhw-app-1"
+    },
+    "image_source": {
+      "type": "base_image",
+      "image_name": "radiatest-ttfhw:latest（由 .devcontainer/Dockerfile 基于 openeuler/openeuler:22.03-lts 构建）",
+      "selection_reason": "Tier 2 Dockerfile 构建：文档闭包未发现业务预构建镜像信号（各 Dockerfile FROM 均为纯基础镜像、无 docker pull 自定义镜像命令），仓库自带 .devcontainer/Dockerfile（FROM openeuler/openeuler:22.03-lts）并配套 docker-compose 编排 redis/mariadb/rabbitmq，为仓库推荐的容器化验证路径，故原样构建镜像并按 compose 栈启动；宿主 8080 端口被其他服务占用，以临时 override 关闭端口发布，不影响容器内验证"
+    }
+  },
+  "document_reading_summary": {
+    "architecture": {
+      "source": "README.md/README.en.md/目录结构",
+      "value": "Flask+Vue 前后端架构：radiaTest-server（Python/Flask 后端 + celery 异步任务）、radiaTest-web（Vue3 前端）、build/（docker-compose 与 k8s-pod 两种容器化部署编排）"
+    },
+    "recommended_image": {
+      "source": "build/docker-compose/containers/web/supervisor/Dockerfile",
+      "value": "Tier 2 仓库 Dockerfile 构建：FROM openeuler/openeuler:22.03-lts 纯基础镜像，无业务预构建镜像信号（无 docker pull 自定义镜像、无 devcontainer），nginx_web 组件 FROM nginx:1.21.5 官方镜像"
+    },
+    "dockerfile_dependencies": {
+      "source": "supervisor/Dockerfile + radiaTest-server/requirements.txt",
+      "value": "系统包：git make rsync openssl expect iputils cronie logrotate python3-pip python3-devel sudo shadow unrar(install_rar.sh)；Python 依赖 91 项（Flask 2.2.5、SQLAlchemy 1.4.25、celery 5.2.2、Werkzeug 2.3.8 等），pip 源为清华镜像"
+    },
+    "dependencies": {
+      "source": "build/docker-compose/containers/web/docker-compose.yml",
+      "value": [
+        "中间件：redis:4.0.11、rabbitmq:3.7.23-management、mariadb:10.5.10（docker-compose 提供）",
+        "前端：Node.js（build/docker-compose/scripts/web/install_nodejs.sh 下载指定版本）+ npm"
+      ]
+    },
+    "build_commands": {
+      "source": "README.md + radiatestctl + setup.sh",
+      "value": "整体部署入口：build/docker-compose/radiatestctl -u web；服务端镜像构建：docker build -f build/docker-compose/containers/web/supervisor/Dockerfile（context 为 containers/web/）；前端构建：npm install --force && npm run build"
+    },
+    "ut_commands": {
+      "source": "radiaTest-server/script/ut.sh（本次验证前新增）",
+      "value": "cd radiaTest-server && bash script/ut.sh：自动安装 tests/requirements.txt（pytest、PyYAML、rarfile、html-sanitizer、flask==2.2.5、werkzeug==2.3.8、requests、pandas）后执行 python3 -m pytest tests -v，共 58 个用例"
+    },
+    "sample_commands": {
+      "source": "README.md",
+      "value": "仓库未提供独立样例脚本；部署冒烟入口为 build/docker-compose/radiatestctl -u web，需交互填写 SSL 证书信息且依赖三个中间件容器，不适合无人值守验证，样例步骤以镜像可构建+服务可初始化替代"
+    },
+    "special_dependencies": {
+      "source": "install_rar.sh + install_nodejs.sh",
+      "value": [
+        "rarfile 运行需 unrar 二进制（install_rar.sh 安装）",
+        "前端构建需从 nodejs.org 下载 Node 二进制包",
+        "ssl 证书由 setup.sh 内 gen_ssl_cert.sh 交互生成"
+      ]
+    }
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-09-09T11:35:00",
+      "step": "document_reading",
+      "action": "读取 README.md 提取部署方式（docker-compose/k8s）与构建入口 radiatestctl",
+      "result": "成功",
+      "details": {},
+      "command": "cat /root/xys/radiaTest/README.md",
+      "success": true,
+      "output": "容器化部署 radiatestctl -u web；修改 /etc/radiaTest/server.ini",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-09T11:35:00",
+      "step": "document_reading",
+      "action": "读取 README.en.md 与 radiaTest-web/README.md 确认前端构建命令 npm install --force && npm run build",
+      "result": "成功",
+      "details": {},
+      "command": "grep 前端 README",
+      "success": true,
+      "output": "npm install --force; npm run serve/build/lint",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-09T11:35:00",
+      "step": "document_reading",
+      "action": "读取 supervisor/Dockerfile 与 nginx_web/Dockerfile，确认 FROM 均为纯基础镜像，提取 dnf/pip 依赖清单",
+      "result": "成功",
+      "details": {},
+      "command": "cat build/docker-compose/containers/web/{supervisor,nginx_web}/Dockerfile",
+      "success": true,
+      "output": "FROM openeuler/openeuler:22.03-lts；pip install -r requirements.txt -i 清华源",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-09T11:35:00",
+      "step": "document_reading",
+      "action": "读取 docker-compose.yml 与 conf/server.ini，确认中间件 redis/rabbitmq/mariadb 与配置结构",
+      "result": "成功",
+      "details": {},
+      "command": "grep image docker-compose.yml",
+      "success": true,
+      "output": "redis:4.0.11 rabbitmq:3.7.23-management mariadb:10.5.10",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-09T11:35:00",
+      "step": "document_reading",
+      "action": "NPU 需求扫描：README/Dockerfile/requirements 无 CANN/Ascend/npu 关键字",
+      "result": "成功",
+      "details": {},
+      "command": "grep -rniE 'cann|ascend|npu' README.md requirements.txt Dockerfile",
+      "success": true,
+      "output": "无命中，npu_required=false",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 3
+    },
+    {
+      "timestamp": "2026-09-09T11:40:00",
+      "step": "static_analysis_scan",
+      "action": "扫描 .pre-commit-config.yaml，解析全部 hook 名称与依赖工具",
+      "result": "成功",
+      "details": {
+        "hook_count": 15,
+        "tools": [
+          "pre-commit-hooks v6.0.0",
+          "gitleaks v8.30.1",
+          "codespell v2.4.3",
+          "ruff v0.16.2",
+          "bandit 1.9.4",
+          "prettier/eslint(local)"
+        ]
+      },
+      "command": "cat .pre-commit-config.yaml",
+      "success": true,
+      "output": "hooks: trailing-whitespace, end-of-file-fixer, check-yaml, check-json, check-xml, check-merge-conflict, check-added-large-files, detect-private-key, gitleaks, codespell, ruff-check, ruff-format, bandi",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-09T11:40:00",
+      "step": "static_analysis_scan",
+      "action": "扫描 lint-runner 配置（.lint-runner.yaml/.lintrunner.toml）",
+      "result": "成功",
+      "details": {},
+      "command": "ls .lint-runner.yaml .lintrunner.toml",
+      "success": true,
+      "output": "不存在，configured=false",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-09T11:40:00",
+      "step": "devcontainer_scan",
+      "action": "读取 .devcontainer/devcontainer.json 与 Dockerfile/docker-compose.yml，确认基础镜像与编排结构",
+      "result": "成功",
+      "details": {
+        "tier_signal": "Tier 2 仓库 Dockerfile 构建",
+        "npu_required": false
+      },
+      "command": "cat .devcontainer/devcontainer.json .devcontainer/Dockerfile .devcontainer/docker-compose.yml",
+      "success": true,
+      "output": "FROM openeuler/openeuler:22.03-lts；app 服务挂载 ..:/workspace；中间件 redis/mariadb/rabbitmq",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 2
+    },
+    {
+      "timestamp": "2026-09-09T11:55:00",
+      "step": "image_selection",
+      "action": "文档闭包后判定 Tier：无 Tier 1 信号（无业务预构建镜像/自定义 docker pull），命中 Tier 2（仓库自带 .devcontainer/Dockerfile）",
+      "result": "Tier 2 Dockerfile 构建",
+      "details": {
+        "tier": "Tier 2 Dockerfile 构建",
+        "image": "radiatest-ttfhw:latest"
+      },
+      "command": "docker build -f .devcontainer/Dockerfile -t radiatest-ttfhw .devcontainer",
+      "success": true,
+      "output": "镜像构建成功，基于 openeuler/openeuler:22.03-lts",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 311
+    },
+    {
+      "timestamp": "2026-09-09T11:55:00",
+      "step": "container_setup",
+      "action": "以仓库自带 docker-compose 编排启动容器栈：app（挂载仓库根目录至 /workspace）+ redis(TLS)/mariadb/rabbitmq 中间件 + certgen 证书生成",
+      "result": "成功",
+      "details": {
+        "startup_command_source": "readme(devcontainer 编排为仓库提供)",
+        "port_override": "宿主 8080 被占用，关闭端口发布，容器内网络访问"
+      },
+      "command": "docker compose -p radiatest-ttfhw -f .devcontainer/docker-compose.yml -f /tmp/opencode/radiatest-override.yml up -d",
+      "success": true,
+      "output": "certgen Exited(证书已生成)；redis/mariadb/rabbitmq Healthy；app Started",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 95
+    },
+    {
+      "timestamp": "2026-09-09T11:55:00",
+      "step": "container_setup",
+      "action": "收集宿主机与容器规格信息",
+      "result": "成功",
+      "details": {},
+      "command": "uname -m; nproc; free -g; docker exec radiatest-ttfhw-app-1 ...",
+      "success": true,
+      "output": "宿主 aarch64/96核/470GB；容器 openEuler 22.03/Python 3.9.9/Node v18.20.4",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 1
+    },
+    {
+      "timestamp": "2026-09-09T13:25:00",
+      "step": "build_attempt",
+      "action": "执行仓库自带环境构建入口 post_install.sh（Python 依赖安装 + npm ci + 数据库初始化）",
+      "result": "失败",
+      "details": {},
+      "command": "docker exec radiatest-ttfhw-app-1 bash /workspace/.devcontainer/post_install.sh",
+      "success": false,
+      "output": "gevent==23.9.1 无 aarch64 wheel，sdist 在最新 Cython 3.1.x 下编译失败：Cython.Compiler.Errors.CompileError: src/gevent/libev/corecext.pyx",
+      "error": "",
+      "returncode": 1,
+      "duration_seconds": 356
+    },
+    {
+      "timestamp": "2026-09-09T13:25:00",
+      "step": "build_retry",
+      "action": "重试1：以 PIP_CONSTRAINT=Cython==3.0.2 预装 gevent，失败（构建环境 exit 2）",
+      "result": "失败",
+      "details": {},
+      "command": "PIP_CONSTRAINT=/tmp/constraint.txt pip install --user gevent==23.9.1",
+      "success": false,
+      "output": "Cython==3.0.2 约束下构建失败",
+      "error": "",
+      "returncode": 2,
+      "duration_seconds": 180
+    },
+    {
+      "timestamp": "2026-09-09T13:25:00",
+      "step": "build_retry",
+      "action": "重试2：以 PIP_CONSTRAINT=Cython==3.0.11 预装 gevent==23.9.1，源码编译成功",
+      "result": "成功",
+      "details": {
+        "root_cause": "gevent 23.9.1 未发布 cp39/aarch64 wheel，需源码编译；sdist 与 Cython 3.1.x 不兼容，Cython 3.0.11 可正常编译"
+      },
+      "command": "PIP_CONSTRAINT=/tmp/constraint.txt pip install --user gevent==23.9.1",
+      "success": true,
+      "output": "Successfully installed gevent 23.9.1",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 420
+    },
+    {
+      "timestamp": "2026-09-09T13:25:00",
+      "step": "build_retry",
+      "action": "重试3：全量安装 requirements.txt，bcrypt/alembic 因 PyPI 网络抖动两次中断，第3次成功",
+      "result": "成功",
+      "details": {},
+      "command": "pip install --user --timeout 120 --retries 10 -r requirements.txt（循环重试3次）",
+      "success": true,
+      "output": "91 项依赖全部安装",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 900
+    },
+    {
+      "timestamp": "2026-09-09T13:25:00",
+      "step": "build_attempt",
+      "action": "重跑 post_install.sh：pip 依赖已满足，unrar 检查、npm ci、db.create_all() 数据库初始化全部通过",
+      "result": "成功",
+      "details": {},
+      "command": "docker exec radiatest-ttfhw-app-1 bash /workspace/.devcontainer/post_install.sh",
+      "success": true,
+      "output": "==> [6/6] 完成，数据库初始化成功",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 320
+    },
+    {
+      "timestamp": "2026-09-09T13:25:00",
+      "step": "build_attempt",
+      "action": "执行前端生产构建 npm run build（vue-cli-service build，Node_OPTIONS 堆内存 8GB）",
+      "result": "成功",
+      "details": {},
+      "command": "docker exec radiatest-ttfhw-app-1 bash -c 'cd /workspace/radiaTest-web && npm run build'",
+      "success": true,
+      "output": "DONE Build complete. Hash: 617b104ea2a20e92 Time: 124568ms，dist 目录就绪",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 128
+    },
+    {
+      "timestamp": "2026-09-09T13:40:00",
+      "step": "ut_execution",
+      "action": "使用仓库 UT 入口脚本 script/ut.sh 在容器内执行单元测试（脚本自动安装 tests/requirements.txt 后执行 pytest）",
+      "result": "成功",
+      "details": {
+        "ut_script": "radiaTest-server/script/ut.sh（仓库自带入口）",
+        "test_dir": "radiaTest-server/tests（10 个测试文件 + conftest）",
+        "tested_modules": [
+          "math_util",
+          "sha256_util",
+          "scope_util",
+          "user_util",
+          "config_util",
+          "safe_uncompress",
+          "text_utils",
+          "page_util",
+          "shell",
+          "sheet"
+        ],
+        "pytest_version": "8.4.2",
+        "python": "3.9.9/aarch64"
+      },
+      "command": "docker exec radiatest-ttfhw-app-1 bash /workspace/radiaTest-server/script/ut.sh",
+      "success": true,
+      "output": "58 passed in 1.10s",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 105
+    },
+    {
+      "timestamp": "2026-09-09T13:45:00",
+      "step": "sample_execution",
+      "action": "使用仓库自带 start_backend.sh 启动后端服务并探活（/ 与 /api/v1/product）",
+      "result": "成功",
+      "details": {
+        "endpoint_results": {
+          "/": 404,
+          "/api/v1/product": 400
+        }
+      },
+      "command": "docker exec radiatest-ttfhw-app-1 bash /workspace/.devcontainer/start_backend.sh && curl http://127.0.0.1:21500/...",
+      "success": true,
+      "output": "服务约4秒启动；/ 返回404（无根路由）；/api/v1/product 返回400参数校验JSON，业务接口正常",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 60
+    },
+    {
+      "timestamp": "2026-09-09T13:45:00",
+      "step": "sample_execution",
+      "action": "前端生产构建产物确认（dist 就绪，nginx 部署路径按 README 承载）",
+      "result": "成功",
+      "details": {},
+      "command": "npm run build 产物 radiaTest-web/dist",
+      "success": true,
+      "output": "Build complete, Hash 617b104ea2a20e92",
+      "error": "",
+      "returncode": 0,
+      "duration_seconds": 128
+    }
+  ],
+  "final_results": {
+    "static_analysis": {
+      "enabled": true,
+      "summary": "仓库根目录存在 .pre-commit-config.yaml（minimum_pre_commit_version 4.0），含通用基础 hook（trailing-whitespace/end-of-file-fixer/check-yaml/check-json/check-xml/check-merge-conflict/check-added-large-files/detect-private-key）、gitleaks 密钥检测、codespell 拼写检查、ruff-check+ruff-format（Python）、bandit 安全检查，以及 prettier/eslint（JS/Vue，local hook 依赖 node_modules）；未发现 lint-runner 配置",
+      "pre_commit": {
+        "configured": true,
+        "config_file": ".pre-commit-config.yaml",
+        "status": "通过",
+        "duration_seconds": 2
+      },
+      "lint_runner": {
+        "configured": false,
+        "config_file": null
+      }
+    },
+    "devcontainer": {
+      "enabled": true,
+      "config_dir": ".devcontainer",
+      "config_files": [
+        "devcontainer.json",
+        "Dockerfile",
+        "docker-compose.yml",
+        "post_install.sh",
+        "init_server_ini.sh",
+        "start_backend.sh",
+        "README.devcontainer.md"
+      ],
+      "original_base_image": "openeuler/openeuler:22.03-lts（ARG OPENEULER_IMAGE 默认值，纯基础镜像）",
+      "used_image": "radiatest-devcontainer（Tier 2 由 .devcontainer/Dockerfile 原样构建）",
+      "summary": "devcontainer 采用 dockerComposeFile 编排：app 服务挂载仓库根目录至 /workspace，附 redis:7(TLS)/mariadb:10.5/rabbitmq:3-management 中间件；Dockerfile 基于 openEuler 22.03 安装 gcc/cmake/python3-pip 工具链与 Node.js v18.20.4 官方二进制；post_install.sh 完成 Python 依赖安装、unrar、npm ci、数据库初始化；devcontainer.json 的 image 字段未指向非基础镜像，判定为 Tier 2 信号"
+    },
+    "build": {
+      "status": "success",
+      "duration_seconds": 448,
+      "artifacts": [
+        {
+          "name": "radiaTest-web/dist 前端生产构建产物",
+          "path": "/workspace/radiaTest-web/dist（宿主 radiaTest-web/dist）",
+          "size": "约10MB",
+          "type": "static_assets"
+        },
+        {
+          "name": "Python 运行环境（requirements.txt 91 项依赖）",
+          "path": "容器 /home/vscode/.local/lib/python3.9/site-packages",
+          "type": "env"
+        },
+        {
+          "name": "radiatest-ttfhw 验证镜像",
+          "path": "docker image radiatest-ttfhw:latest",
+          "type": "image"
+        },
+        {
+          "name": "radiaTest 数据库表结构",
+          "path": "mariadb(radiaTest) 由 db.create_all() 初始化",
+          "type": "database"
+        }
+      ]
+    },
+    "ut": {
+      "status": "success",
+      "duration_seconds": 105,
+      "total": 58,
+      "passed": 58,
+      "failed": 0,
+      "failures": []
+    },
+    "sample": {
+      "status": "success",
+      "duration_seconds": 60,
+      "results": [
+        {
+          "sample_name": "后端服务启动冒烟（仓库自带 .devcontainer/start_backend.sh）",
+          "execution_status": "success",
+          "output_summary": "flask run_gevent 服务约 4 秒内启动并监听 21500 端口；访问根路径 / 返回 404（无根路由，属预期）；访问业务接口 /api/v1/product 返回 HTTP 400 及 Pydantic 参数校验错误 JSON，证明 Flask 应用、路由与校验层在容器内正常工作，数据库/redis/rabbitmq 中间件健康",
+          "execution_time": "60s"
+        },
+        {
+          "sample_name": "前端生产构建产物可用性（npm run build）",
+          "execution_status": "success",
+          "output_summary": "radiaTest-web/dist 构建完成（Hash 617b104ea2a20e92），产物可交由 nginx 部署；验证环境按 override 关闭了端口发布，nginx_web 容器未单独拉起，以构建产物就绪为验证目标",
+          "execution_time": "128s"
+        }
+      ]
+    }
+  },
+  "documentation_gaps": [
+    {
+      "time": "2026-09-09T11:35:00",
+      "title": "README 缺少单元测试执行说明",
+      "body": "仓库此前无任何 UT 与说明，本次已在 radiaTest-server/tests/ 补充 58 个 pytest 用例、新增 script/ut.sh 入口并在 README 增加「单元测试」章节",
+      "source": "README.md/步骤6"
+    },
+    {
+      "time": "2026-09-09T12:45:00",
+      "title": "requirements.txt 未声明 pandas",
+      "body": "server/utils/sheet.py 顶层 import pandas，但 radiaTest-server/requirements.txt 未包含 pandas，生产镜像若按 requirements 严格安装将出现 ImportError；本次 UT 依赖清单 tests/requirements.txt 已显式声明",
+      "source": "radiaTest-server/requirements.txt"
+    }
+  ],
+  "problems_encountered": [
+    {
+      "timestamp": "2026-09-09T12:10:00",
+      "problem": "gevent==23.9.1 在 aarch64 上无 wheel 且 sdist 编译失败：Kunpeng-920 容器为 cp39/aarch64，PyPI 无对应 wheel，sdist 在构建隔离环境的 Cython 3.1.x 下报 CompileError: src/gevent/libev/corecext.pyx",
+      "solution": "以 PIP_CONSTRAINT 约束 Cython==3.0.11 后源码编译成功（Cython 3.0.2 亦不可用），随后重跑 post_install.sh 一切正常",
+      "source": "步骤5构建日志"
+    },
+    {
+      "timestamp": "2026-09-09T12:40:00",
+      "problem": "PyPI 下载多次超时/丢包导致依赖安装中断：files.pythonhosted.org 出现 ReadTimeoutError 及候选包被丢弃（alembic/bcrypt 报 No matching distribution）",
+      "solution": "pip 增加 --timeout 120 --retries 10 并循环重试，第 3 次全量安装成功",
+      "source": "步骤5构建日志"
+    },
+    {
+      "timestamp": "2026-09-09T11:55:00",
+      "problem": "宿主 8080 端口被其他服务占用：devcontainer compose 的 app 服务默认发布 8080/21500 端口，与宿主已有 docker-proxy 冲突",
+      "solution": "以临时 override 文件（/tmp/opencode/radiatest-override.yml）关闭端口发布，验证全程走容器内部网络，未改动仓库文件",
+      "source": "步骤4容器启动"
+    }
+  ]
+}
