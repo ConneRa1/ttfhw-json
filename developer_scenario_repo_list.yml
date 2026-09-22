@@ -288,6 +288,10 @@ OpenEuler:
       url: "https://gitcode.com/openeuler/euler-copilot-rag.git"
       branch: dev
       component: OpenEuler
+    - name: mem_hot
+      url: "https://gitcode.com/openeuler/mem_hot.git"
+      branch: master
+      component: OpenEuler
 
 CANN:
   description: "CANN 开发者场景验证代码仓列表"
